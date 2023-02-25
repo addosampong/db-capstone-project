@@ -1,6 +1,6 @@
 -- MySQL dump 10.13  Distrib 8.0.27, for macos11 (x86_64)
 --
--- Host: 127.0.0.1    Database: littlelemondb
+-- Host: 127.0.0.1    Database: little
 -- ------------------------------------------------------
 -- Server version	8.0.31
 
@@ -228,16 +228,17 @@ SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
 /*!50001 CREATE VIEW `orders_view` AS SELECT 
  1 AS `Order ID`,
+ 1 AS `Bill Amount`,
  1 AS `Quantity`,
  1 AS `Cost`*/;
 SET character_set_client = @saved_cs_client;
 
 --
--- Dumping events for database 'littlelemondb'
+-- Dumping events for database 'little'
 --
 
 --
--- Dumping routines for database 'littlelemondb'
+-- Dumping routines for database 'little'
 --
 /*!50003 DROP PROCEDURE IF EXISTS `BasicSalesReport` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -328,7 +329,7 @@ DELIMITER ;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `customer_order_view` AS select `c`.`CustomerID` AS `Customer ID`,concat(`c`.`FirstName`,' ',`c`.`LastName`) AS `Customer`,`o`.`OrderID` AS `Order ID`,round((`o`.`BillAmount` * `o`.`Quantity`),2) AS `Cost`,`m`.`Cuisine` AS `Menu Name`,`mi`.`Name` AS `Course Name` from ((((`customers` `c` join `bookings` `b` on((`c`.`CustomerID` = `b`.`CustomerID`))) join `orders` `o` on((`b`.`BookingID` = `o`.`BookingID`))) join `menus` `m` on((`o`.`MenuID` = `m`.`MenuID`))) join `menuitems` `mi` on((`m`.`ItemID` = `mi`.`ItemID`))) where ((`o`.`BillAmount` * `o`.`Quantity`) > 150) order by (`o`.`BillAmount` * `o`.`Quantity`) */;
+/*!50001 VIEW `customer_order_view` AS select `c`.`CustomerID` AS `Customer ID`,concat(`c`.`FirstName`,' ',`c`.`LastName`) AS `Customer`,`o`.`OrderID` AS `Order ID`,round((`o`.`BillAmount` * `o`.`Quantity`),2) AS `Cost`,`m`.`Cuisine` AS `Menu Name`,`mi`.`Name` AS `Course Name` from ((((`customers` `c` join `littlelemondb`.`bookings` `b` on((`c`.`CustomerID` = `b`.`CustomerID`))) join `orders` `o` on((`b`.`BookingID` = `o`.`BookingID`))) join `menus` `m` on((`o`.`MenuID` = `m`.`MenuID`))) join `menuitems` `mi` on((`m`.`ItemID` = `mi`.`ItemID`))) where ((`o`.`BillAmount` * `o`.`Quantity`) > 150) order by (`o`.`BillAmount` * `o`.`Quantity`) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -364,7 +365,7 @@ DELIMITER ;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `orders_view` AS select `orders`.`OrderID` AS `Order ID`,`orders`.`Quantity` AS `Quantity`,round((`orders`.`BillAmount` * `orders`.`Quantity`),2) AS `Cost` from `orders` where (`orders`.`Quantity` > 2) */;
+/*!50001 VIEW `orders_view` AS select `orders`.`OrderID` AS `Order ID`,`orders`.`BillAmount` AS `Bill Amount`,`orders`.`Quantity` AS `Quantity`,round((`orders`.`BillAmount` * `orders`.`Quantity`),2) AS `Cost` from `orders` where (`orders`.`Quantity` > 2) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -378,4 +379,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-02-23 22:41:12
+-- Dump completed on 2023-02-25  7:23:16
