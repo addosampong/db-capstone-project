@@ -36,7 +36,7 @@ CREATE TABLE `Bookings` (
   KEY `employee_id_fk_idx` (`EmployeeID`),
   CONSTRAINT `customer_id_fk` FOREIGN KEY (`CustomerID`) REFERENCES `Customers` (`CustomerID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `employee_id_fk` FOREIGN KEY (`EmployeeID`) REFERENCES `Employees` (`EmployeeID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=113 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -45,7 +45,7 @@ CREATE TABLE `Bookings` (
 
 LOCK TABLES `Bookings` WRITE;
 /*!40000 ALTER TABLE `Bookings` DISABLE KEYS */;
-INSERT INTO `Bookings` VALUES (1,12,1,'2023-03-05','19:00:00',1),(2,12,2,'2023-03-05','19:00:00',1),(3,19,3,'2023-03-05','15:00:00',3),(4,15,4,'2023-03-05','17:30:00',4),(5,5,5,'2023-03-05','18:30:00',2),(6,8,6,'2023-03-05','20:00:00',5),(104,12,6,'2023-03-05','09:45:16',2),(109,1,6,'2023-03-05','10:30:59',6);
+INSERT INTO `Bookings` VALUES (1,12,1,'2022-10-10','19:00:00',1),(2,12,2,'2022-10-12','19:00:00',1),(3,19,3,'2022-10-13','15:00:00',3),(4,15,4,'2022-11-01','17:30:00',4),(5,5,5,'2022-11-10','18:30:00',2),(6,8,6,'2022-11-10','20:00:00',5),(104,12,6,'2023-03-05','09:45:16',2),(109,1,6,'2023-03-05','10:30:59',6),(111,11,1,'2023-03-06','15:53:56',6),(112,10,1,'2023-03-06','15:56:34',6);
 /*!40000 ALTER TABLE `Bookings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -252,7 +252,7 @@ SET character_set_client = @saved_cs_client;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `AddBooking`(IN customer_id INT, IN booking_date DATE, IN table_no INT)
+CREATE DEFINER=`root`@`localhost` PROCEDURE `AddBooking`(IN booking_id INT, IN customer_id INT, IN booking_date DATE, IN table_no INT)
 BEGIN
 	START TRANSACTION;
 		IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingDate = booking_date) = 1) AND
@@ -263,7 +263,7 @@ BEGIN
 			SET @employee_id = 6;
 			INSERT INTO Bookings(TableNo, CustomerID, BookingDate, BookingSlot, EmployeeID)
             VALUES
-            (table_no, customer_id, booking_date, CURRENT_TIME(), @employee_id );
+            (table_no, customer_id, CURRENT_DATE(), CURRENT_TIME(), @employee_id );
 			SELECT CONCAT("Booking added for Table ", table_no) AS "Confirmation";
 			COMMIT;
 	END IF;
@@ -524,7 +524,8 @@ BEGIN
 		ROLLBACK;
 		ELSE
 			UPDATE Bookings
-            SET BookingDate = booking_date;
+            SET BookingDate = booking_date
+            WHERE BookingID = booking_id;
 			SELECT CONCAT("Booking ", booking_id, " updated") AS "Confirmation";
 			COMMIT;
 	END IF;
@@ -598,4 +599,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-03-06 10:52:28
+-- Dump completed on 2023-03-06 16:54:35
