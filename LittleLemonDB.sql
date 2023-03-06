@@ -1,6 +1,8 @@
+CREATE DATABASE  IF NOT EXISTS `littlelemondb` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `littlelemondb`;
 -- MySQL dump 10.13  Distrib 8.0.27, for macos11 (x86_64)
 --
--- Host: 127.0.0.1    Database: little
+-- Host: 127.0.0.1    Database: littlelemondb
 -- ------------------------------------------------------
 -- Server version	8.0.31
 
@@ -26,6 +28,7 @@ CREATE TABLE `Bookings` (
   `BookingID` int NOT NULL AUTO_INCREMENT,
   `TableNo` int NOT NULL,
   `CustomerID` int NOT NULL,
+  `BookingDate` date DEFAULT NULL,
   `BookingSlot` time NOT NULL,
   `EmployeeID` int DEFAULT NULL,
   PRIMARY KEY (`BookingID`),
@@ -33,7 +36,7 @@ CREATE TABLE `Bookings` (
   KEY `employee_id_fk_idx` (`EmployeeID`),
   CONSTRAINT `customer_id_fk` FOREIGN KEY (`CustomerID`) REFERENCES `Customers` (`CustomerID`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `employee_id_fk` FOREIGN KEY (`EmployeeID`) REFERENCES `Employees` (`EmployeeID`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=103 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -42,7 +45,7 @@ CREATE TABLE `Bookings` (
 
 LOCK TABLES `Bookings` WRITE;
 /*!40000 ALTER TABLE `Bookings` DISABLE KEYS */;
-INSERT INTO `Bookings` VALUES (1,12,1,'19:00:00',1),(2,12,2,'19:00:00',1),(3,19,3,'15:00:00',3),(4,15,4,'17:30:00',4),(5,5,5,'18:30:00',2),(6,8,6,'20:00:00',5);
+INSERT INTO `Bookings` VALUES (1,12,1,'2023-03-05','19:00:00',1),(2,12,2,'2023-03-05','19:00:00',1),(3,19,3,'2023-03-05','15:00:00',3),(4,15,4,'2023-03-05','17:30:00',4),(5,5,5,'2023-03-05','18:30:00',2),(6,8,6,'2023-03-05','20:00:00',5),(104,12,6,'2023-03-05','09:45:16',2),(109,1,6,'2023-03-05','10:30:59',6);
 /*!40000 ALTER TABLE `Bookings` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -228,18 +231,81 @@ SET @saved_cs_client     = @@character_set_client;
 /*!50503 SET character_set_client = utf8mb4 */;
 /*!50001 CREATE VIEW `orders_view` AS SELECT 
  1 AS `Order ID`,
- 1 AS `Bill Amount`,
  1 AS `Quantity`,
  1 AS `Cost`*/;
 SET character_set_client = @saved_cs_client;
 
 --
--- Dumping events for database 'little'
+-- Dumping events for database 'littlelemondb'
 --
 
 --
--- Dumping routines for database 'little'
+-- Dumping routines for database 'littlelemondb'
 --
+/*!50003 DROP PROCEDURE IF EXISTS `AddBooking` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `AddBooking`(IN customer_id INT, IN booking_date DATE, IN table_no INT)
+BEGIN
+	START TRANSACTION;
+		IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingDate = booking_date) = 1) AND
+				(SELECT exists (select 1 FROM littlelemondb.Bookings WHERE TableNo = table_no) = 1) THEN
+			SELECT CONCAT("Table ", table_no, " is already booked - booking not added") AS "Confirmation";
+		ROLLBACK;
+		ELSE
+			SET @employee_id = 6;
+			INSERT INTO Bookings(TableNo, CustomerID, BookingDate, BookingSlot, EmployeeID)
+            VALUES
+            (table_no, customer_id, booking_date, CURRENT_TIME(), @employee_id );
+			SELECT CONCAT("Booking added for Table ", table_no) AS "Confirmation";
+			COMMIT;
+	END IF;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `AddValidBooking` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `AddValidBooking`(IN booking_date DATE, IN table_no INT)
+BEGIN
+	START TRANSACTION;
+		IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingDate = booking_date) = 1) AND
+				(SELECT exists (select 1 FROM littlelemondb.Bookings WHERE TableNo = table_no) = 1) THEN
+			SELECT CONCAT("Table ", table_no, " is already booked - booking cancelled") AS "Booking Status";
+		ROLLBACK;
+		ELSE
+			SET @customer_id = 6, @employee_id = 6;
+			INSERT INTO Bookings(TableNo, CustomerID, BookingDate, BookingSlot, EmployeeID)
+            VALUES
+            (table_no, @customer_id, booking_date, CURRENT_TIME(), @employee_id );
+			SELECT CONCAT("Booking made for Table ", table_no) AS "Booking Status";
+			COMMIT;
+	END IF;
+
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 /*!50003 DROP PROCEDURE IF EXISTS `BasicSalesReport` */;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -256,6 +322,130 @@ SELECT SUM(BillAmount) AS "Total Sales",
 ROUND(AVG(BillAmount), 2) AS "Average Bill Paid",
 MAX(BillAmount) AS "Maximum Bill Paid",
 MIN(BillAmount) AS "Minimum Bill Paid"
+FROM Orders;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `CancelBooking` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CancelBooking`(IN booking_id INT)
+BEGIN
+	START TRANSACTION;
+		IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingID = booking_id) = 1) THEN
+			DELETE FROM Bookings
+            WHERE BookingID = booking_id;
+			SELECT CONCAT("Booking", booking_id, " cancelled") AS "Confirmation";
+            COMMIT;
+		
+		ELSE
+			SELECT CONCAT("Booking", booking_id, " not found") AS "Confirmation";
+			ROLLBACK;
+	END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `CancelOrder` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CancelOrder`(IN id INT)
+BEGIN
+	IF (SELECT exists (select 1 FROM littlelemondb.Orders where OrderID = id) = 1) THEN
+    	DELETE FROM Orders
+	    WHERE OrderID = id;
+		SELECT CONCAT("Order with ID ", id, " is cancelled") AS "Confirmation";
+	ELSE
+		SELECT CONCAT("Order with ID ", id, " is not a valid Order") AS "Confirmation";
+	END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `CheckBooking` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `CheckBooking`(IN booking_date DATE, IN table_no INT)
+BEGIN
+IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingDate = booking_date) = 1) AND
+ (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE TableNo = table_no) = 1) THEN
+    	SELECT CONCAT("Table ", table_no, " is already booked for ", booking_date) AS "Booking Status";
+	ELSE
+		SELECT CONCAT("Table ", table_no, " is not booked") AS "Booking Status";
+	END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `GetOrderDetail` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetOrderDetail`()
+BEGIN
+PREPARE GetOrderDetail FROM
+'SELECT OrderID as `Order ID`, Quantity, (BillAmount * Quantity) as `Cost`
+FROM Orders
+Where OrderID = ?';
+
+SET @orderid = 1;
+
+EXECUTE GetOrderDetail USING @orderid;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `GetOrderQuantity` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `GetOrderQuantity`()
+BEGIN
+SELECT MAX(Quantity) AS 'Max Quantity in Order'
 FROM Orders;
 END ;;
 DELIMITER ;
@@ -315,6 +505,35 @@ DELIMITER ;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;
 /*!50003 SET character_set_results = @saved_cs_results */ ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 DROP PROCEDURE IF EXISTS `UpdateBooking` */;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+CREATE DEFINER=`root`@`localhost` PROCEDURE `UpdateBooking`(IN booking_id INT, IN booking_date DATE)
+BEGIN
+	START TRANSACTION;
+		IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingID = booking_id) = 1) AND
+				(SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingDate = booking_date) = 1) THEN
+			SELECT CONCAT("No changes made to Booking ", booking_id) AS "Confirmation";
+		ROLLBACK;
+		ELSE
+			UPDATE Bookings
+            SET BookingDate = booking_date;
+			SELECT CONCAT("Booking ", booking_id, " updated") AS "Confirmation";
+			COMMIT;
+	END IF;
+END ;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Final view structure for view `customer_order_view`
@@ -329,7 +548,7 @@ DELIMITER ;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `customer_order_view` AS select `c`.`CustomerID` AS `Customer ID`,concat(`c`.`FirstName`,' ',`c`.`LastName`) AS `Customer`,`o`.`OrderID` AS `Order ID`,round((`o`.`BillAmount` * `o`.`Quantity`),2) AS `Cost`,`m`.`Cuisine` AS `Menu Name`,`mi`.`Name` AS `Course Name` from ((((`customers` `c` join `littlelemondb`.`bookings` `b` on((`c`.`CustomerID` = `b`.`CustomerID`))) join `orders` `o` on((`b`.`BookingID` = `o`.`BookingID`))) join `menus` `m` on((`o`.`MenuID` = `m`.`MenuID`))) join `menuitems` `mi` on((`m`.`ItemID` = `mi`.`ItemID`))) where ((`o`.`BillAmount` * `o`.`Quantity`) > 150) order by (`o`.`BillAmount` * `o`.`Quantity`) */;
+/*!50001 VIEW `customer_order_view` AS select `c`.`CustomerID` AS `Customer ID`,concat(`c`.`FirstName`,' ',`c`.`LastName`) AS `Customer`,`o`.`OrderID` AS `Order ID`,round((`o`.`BillAmount` * `o`.`Quantity`),2) AS `Cost`,`m`.`Cuisine` AS `Menu Name`,`mi`.`Name` AS `Course Name` from ((((`customers` `c` join `bookings` `b` on((`c`.`CustomerID` = `b`.`CustomerID`))) join `orders` `o` on((`b`.`BookingID` = `o`.`BookingID`))) join `menus` `m` on((`o`.`MenuID` = `m`.`MenuID`))) join `menuitems` `mi` on((`m`.`ItemID` = `mi`.`ItemID`))) where ((`o`.`BillAmount` * `o`.`Quantity`) > 150) order by (`o`.`BillAmount` * `o`.`Quantity`) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -365,7 +584,7 @@ DELIMITER ;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `orders_view` AS select `orders`.`OrderID` AS `Order ID`,`orders`.`BillAmount` AS `Bill Amount`,`orders`.`Quantity` AS `Quantity`,round((`orders`.`BillAmount` * `orders`.`Quantity`),2) AS `Cost` from `orders` where (`orders`.`Quantity` > 2) */;
+/*!50001 VIEW `orders_view` AS select `orders`.`OrderID` AS `Order ID`,`orders`.`Quantity` AS `Quantity`,round((`orders`.`BillAmount` * `orders`.`Quantity`),2) AS `Cost` from `orders` where (`orders`.`Quantity` > 2) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -379,4 +598,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-02-25  7:23:16
+-- Dump completed on 2023-03-06 10:52:28
