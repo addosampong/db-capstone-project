@@ -55,56 +55,55 @@ A screenshot of the query is saved as **Databses showing the LittleLemonDB.png**
 
 We created the **orders_veiw** virtual table in MySQL Workbench to extract the OrderID, Quantity and Costs associated with all orders that have order quantities greater than 2 from the Orders table. The SQL statements for the view is shown below:
 
-`USE littlelemonddb;
-CREATE VIEW orders_view AS
-    SELECT OrderID AS 'Order ID',
-        Quantity AS 'Quantity',
-        ROUND((BillAmount * Quantity), 2) AS 'Cost'
-    FROM orders
-    WHERE (Quantity > 2);`
+    USE littlelemonddb;
+    CREATE VIEW orders_view AS
+        SELECT OrderID AS 'Order ID',
+            Quantity AS 'Quantity',
+            ROUND((BillAmount * Quantity), 2) AS 'Cost'
+        FROM orders
+        WHERE (Quantity > 2);
 
 #### Task 2: Create customer_order_view
 We created the **customer_order_veiw** virtual table in MySQL Workbench to extract order details of customers with orders that cost more than $150. To do this, we joined about 5 tables. These tables have relationships between one or two of their columns with each other. The SQL statements for this view is shown below:
 
-`USE littlelemonddb;
-CREATE VIEW customer_order_view AS
-    SELECT c.CustomerID AS 'Customer ID',
-        CONCAT(c.FirstName, ' ', c.LastName) AS 'Customer',
-        o.OrderID AS 'Order ID',
-        ROUND((o.BillAmount * o.Quantity), 2) AS 'Cost',
-        m.Cuisine AS 'Menu Name',
-        mi.Name AS 'Course Name'
-    FROM customers c
-        JOIN bookings b ON c.CustomerID = b.CustomerID
-        JOIN orders o ON b.BookingID = o.BookingID
-        JOIN menus m ON o.MenuID = m.MenuID
-        JOIN menuitems mi ON m.ItemID = mi.ItemID
-    WHERE (o.BillAmount * o.Quantity) > 150
-    ORDER BY o.BillAmount * o.Quantity;`
+    USE littlelemonddb;
+    CREATE VIEW customer_order_view AS
+        SELECT c.CustomerID AS 'Customer ID',
+            CONCAT(c.FirstName, ' ', c.LastName) AS 'Customer',
+            o.OrderID AS 'Order ID',
+            ROUND((o.BillAmount * o.Quantity), 2) AS 'Cost',
+            m.Cuisine AS 'Menu Name',
+            mi.Name AS 'Course Name'
+        FROM customers c
+            JOIN bookings b ON c.CustomerID = b.CustomerID
+            JOIN orders o ON b.BookingID = o.BookingID
+            JOIN menus m ON o.MenuID = m.MenuID
+            JOIN menuitems mi ON m.ItemID = mi.ItemID
+        WHERE (o.BillAmount * o.Quantity) > 150
+        ORDER BY o.BillAmount * o.Quantity;
     
     
 **Assumptions made**:
-We assume that the cost of an order is calculated by multiplying the order quantity by the bill amount. Hence,
+We assume that the cost of an order is calculated by multiplying the order quantity by the bill amount.
 
-`Cost = BillAmount * Quantity`
+Hence, `Cost = BillAmount * Quantity`
 
 #### Task 3: Create menu_quantity_view
 We created the **menu_quantity_veiw** virtual table in MySQL Workbench to find all menu items for which more than 2 orders have been placed. 
 To get the expected results, we joined 3 tables in the database. These tables have relationships between one or two of their columns with each other. The SQL statements for this view is shown below:
 
-
-`USE littlelemonddb;
-CREATE VIEW menu_quantity_view AS
-    SELECT m.Cuisine AS 'Menu Name',
-        mi.Name AS 'Course Name',
-        o.Quantity AS 'Quantity'
-    FROM menuitems mi
-    JOIN menus m ON mi.ItemID = m.ItemID
-    JOIN orders o ON m.MenuID = o.MenuID
-    WHERE o.Quantity ANY (SELECT orders.Quantity
-            FROM orders
-            WHERE orders.Quantity > 2)
-    ORDER BY o.Quantity;`
+    USE littlelemonddb;
+    CREATE VIEW menu_quantity_view AS
+        SELECT m.Cuisine AS 'Menu Name',
+            mi.Name AS 'Course Name',
+            o.Quantity AS 'Quantity'
+        FROM menuitems mi
+        JOIN menus m ON mi.ItemID = m.ItemID
+        JOIN orders o ON m.MenuID = o.MenuID
+        WHERE o.Quantity ANY (SELECT orders.Quantity
+                FROM orders
+                WHERE orders.Quantity > 2)
+        ORDER BY o.Quantity;
 
 ### Create optimized queries to manage and analyze data
 
@@ -112,13 +111,12 @@ CREATE VIEW menu_quantity_view AS
 
 This stored procedure displays the maximum ordered quantity in the Orders table. The SQL statements for the stored proceduer is shown below:
 
-`USE littlelemondb;
-CREATE PROCEDURE 'GetOrderQuantity'()
-BEGIN
-    SELECT MAX(Quantity) AS 'Max Quantity in Order'
-    FROM Orders;
-END
-`
+    USE littlelemondb;
+    CREATE PROCEDURE 'GetOrderQuantity'()
+    BEGIN
+        SELECT MAX(Quantity) AS 'Max Quantity in Order'
+        FROM Orders;
+    END
 
 #### Task 2: Create GetOrderDetail prepared statement
 
@@ -131,19 +129,20 @@ The prepared statement was exported as an SQL script file. It is named as **Prep
 
 This procedure will allow Little Lemon to cancel any order by specifying the order id as parameter passed to the procedure. The SQL statements for this procedure is as shown below:
 
-`USE littlelemondb;
-CREATE PROCEDURE CancelOrder (IN id INT)
-BEGIN
-    #check Orders table to confirm if Order with OrderID is same id (id specified by Little Lemon), then delete that
-    #order and display the appropriate message
-	IF (SELECT exists (select 1 FROM Orders where OrderID = id) = 1) THEN
-    	DELETE FROM Orders
-	    WHERE OrderID = id;
-		SELECT CONCAT("Order with ID ", id, " is cancelled") AS "Confirmation";
-	ELSE
-		SELECT CONCAT("Order with ID ", id, " is not a valid Order") AS "Confirmation";
-	END IF;
-END`
+    USE littlelemondb;
+    CREATE PROCEDURE CancelOrder (IN id INT)
+    BEGIN
+        #check Orders table to confirm if Order with OrderID is same id (id specified by Little Lemon), then 
+        #delete that order and display the appropriate message
+        
+        IF (SELECT exists (select 1 FROM Orders where OrderID = id) = 1) THEN
+            DELETE FROM Orders
+            WHERE OrderID = id;
+            SELECT CONCAT("Order with ID ", id, " is cancelled") AS "Confirmation";
+        ELSE
+            SELECT CONCAT("Order with ID ", id, " is not a valid Order") AS "Confirmation";
+        END IF;
+    END
 
 ### Table booking system
 
@@ -157,119 +156,130 @@ We used a simple **INSERT** statement to popluate the Bookings table with some s
 
 The **CheckBooking** procedure checks whether a table in the restaurant is already booked. The procedure accepts two input parameters in the form of booking date and table number. The SQL statements for the procedure is shown below:
 
-`USE littlelemondb;
-CREATE PROCEDURE CheckBooking(IN booking_date DATE, IN table_no INT)
-BEGIN
-    #check Bookings table to confirm if there is a booking with BookingDate and TableNo same as the booking_date and
-    #table_no parameters supplied by the user, then display the appropriate message
-    IF (SELECT exists (select 1 FROM Bookings WHERE BookingDate = booking_date) = 1) AND
-     (SELECT exists (select 1 FROM Bookings WHERE TableNo = table_no) = 1) THEN
-            SELECT CONCAT("Table ", table_no, " is already booked for ", booking_date) AS "Booking Status";
-    ELSE
-        SELECT CONCAT("Table ", table_no, " is not booked") AS "Booking Status";
-    END IF;
-END`
+    USE littlelemondb;
+    CREATE PROCEDURE CheckBooking(IN booking_date DATE, IN table_no INT)
+    BEGIN
+        #check Bookings table to confirm if there is a booking with BookingDate and TableNo same as the 
+        #booking_date and table_no parameters supplied by the user, then display the appropriate message
+        
+        IF (SELECT exists (select 1 FROM Bookings WHERE BookingDate = booking_date) = 1) AND
+         (SELECT exists (select 1 FROM Bookings WHERE TableNo = table_no) = 1) THEN
+                SELECT CONCAT("Table ", table_no, " is already booked for ", booking_date) AS "Booking Status";
+        ELSE
+            SELECT CONCAT("Table ", table_no, " is not booked") AS "Booking Status";
+        END IF;
+    END
 
 #### Task 3: Create AddValidBooking store procedure
+
 This procedure helps Little Lemon to verify a booking and decline any reservations for tables that are already booked under another name. This procedure accepts two input parameters in the form of booking date and table number. Since the there will be a number of statements to be executed in this procedure, which statements include insertions, we wrapped the statements around a `START TRANSACTION` statement and used the `ROLLBACK` and `COMMIT` statements where appropriate. For instance, if there is a booking for the booking date and table no supplied by the user, then the entire operations are rolled back, else the booking is inserted into the Bookings table and committed. The SQL statements for the procedure is as shown below:
 
-USE littlelemondb;
-CREATE PROCEDURE AddValidBooking(IN booking_date DATE, IN table_no INT)
-BEGIN
-	START TRANSACTION;
-        #check Bookings table to confirm if there is a booking with BookingDate and TableNo same as the
-        #booking_date and table_no parameters supplied by the user, then display the appropriate message and roll back
-        #the transaction, else add the booking to the Bookings table and display the appropriate message
-		IF (SELECT exists (select 1 FROM Bookings WHERE BookingDate = booking_date) = 1) AND
-				(SELECT exists (select 1 FROM Bookings WHERE TableNo = table_no) = 1) THEN
-			SELECT CONCAT("Table ", table_no, " is already booked - booking cancelled") AS "Booking Status";
-		ROLLBACK;
-		ELSE
-			SET @customer_id = 6, @employee_id = 6;
-			INSERT INTO Bookings(TableNo, CustomerID, BookingDate, BookingSlot, EmployeeID)
-            VALUES
-            (table_no, @customer_id, booking_date, CURRENT_TIME(), @employee_id );
-			SELECT CONCAT("Booking made for Table ", table_no) AS "Booking Status";
-			COMMIT;
-	END IF;
+    USE littlelemondb;
+    CREATE PROCEDURE AddValidBooking(IN booking_date DATE, IN table_no INT)
+    BEGIN
+        START TRANSACTION;
+            #check Bookings table to confirm if there is a booking with BookingDate and TableNo same as the
+            #booking_date and table_no parameters supplied by the user, then display the appropriate message
+            #and roll back the transaction, else add the booking to the Bookings table and display the 
+            #appropriate message
 
-END
+            IF (SELECT exists (select 1 FROM Bookings WHERE BookingDate = booking_date) = 1) AND
+                    (SELECT exists (select 1 FROM Bookings WHERE TableNo = table_no) = 1) THEN
+                SELECT CONCAT("Table ", table_no, " is already booked - booking cancelled") AS "Booking Status";
+                ROLLBACK;
+            ELSE
+                SET @customer_id = 6, @employee_id = 6;
+                INSERT INTO Bookings(TableNo, CustomerID, BookingDate, BookingSlot, EmployeeID)
+                VALUES
+                (table_no, @customer_id, booking_date, CURRENT_TIME(), @employee_id );
+                SELECT CONCAT("Booking made for Table ", table_no) AS "Booking Status";
+                COMMIT;
+        END IF;
+
+    END
+
 ### Create SQL queries to add and update bookings
 
 #### Task 1: Create AddBooking stored procedure
+
 This procedure adds a booking to the Bookings table. The procedure accepts four input parameters in the form of the following bookings parameters: booking id, customer id, booking date and table number. The SQL statements for this procedure is shown below:
 
+    USE littlelemondb;
+    CREATE `AddBooking`(IN booking_id INT, IN customer_id INT, IN booking_date DATE, IN table_no INT)
+    BEGIN
+        START TRANSACTION;
+            #check Bookings table to confirm if there is a booking with BookingID, CustomerID, BookingDate and
+            #TableNo same as the booking_id, customer_id, booking_date and table_no parameters supplied by the 
+            #user, then display the appropriate message and roll back the transaction, else add the booking to
+            #the Bookings table and display the appropriate message
 
-USE littlelemondb;
-CREATE `AddBooking`(IN booking_id INT, IN customer_id INT, IN booking_date DATE, IN table_no INT)
-BEGIN
-	START TRANSACTION;
-        #check Bookings table to confirm if there is a booking with BookingID, CustomerID, BookingDate and TableNo
-        #same as the booking_id, customer_id, booking_date and table_no parameters supplied by the user, then
-        #display the appropriate message and roll back the transaction, else add the booking to the Bookings table and
-        #display the appropriate message
-		IF (SELECT exists (select 1 FROM Bookings WHERE BookingDate = booking_date) = 1) AND
-				(SELECT exists (select 1 FROM Bookings WHERE TableNo = table_no) = 1) THEN
-			SELECT CONCAT("Table ", table_no, " is already booked - booking not added") AS "Confirmation";
-		ROLLBACK;
-		ELSE
-			SET @employee_id = 6;
-			INSERT INTO Bookings(TableNo, CustomerID, BookingDate, BookingSlot, EmployeeID)
-            VALUES
-            (table_no, customer_id, CURRENT_DATE(), CURRENT_TIME(), @employee_id );
-			SELECT CONCAT("Booking added for Table ", table_no) AS "Confirmation";
-			COMMIT;
-	END IF;
+            IF (SELECT exists (select 1 FROM Bookings WHERE BookingDate = booking_date) = 1) AND
+                    (SELECT exists (select 1 FROM Bookings WHERE TableNo = table_no) = 1) THEN
+                SELECT CONCAT("Table ", table_no, " is already booked - booking not added") AS "Confirmation";
+                ROLLBACK;
+            ELSE
+                SET @employee_id = 6;
+                INSERT INTO Bookings(TableNo, CustomerID, BookingDate, BookingSlot, EmployeeID)
+                VALUES
+                (table_no, customer_id, CURRENT_DATE(), CURRENT_TIME(), @employee_id );
+                SELECT CONCAT("Booking added for Table ", table_no) AS "Confirmation";
+                COMMIT;
+        END IF;
 
-END
+    END
 
-**Assumptions made**
-We assume that the if the booking will be added after checking the constraints, the current data and time that the booking is going to be added should be the BookingDate and BookingSlot, and these should be part of the data to be inserted into the Bookings table
+**Assumptions made**: We assume that the if the booking will be added after checking the constraints, the current data and time that the booking is going to be added should be the BookingDate and BookingSlot, and these should be part of the data to be inserted into the Bookings table
+
 #### Task 2: Create UpdateBooking stored procedure
+
 The UpdateBooking procedure helps Little Lemon to update existing bookings in the Bookings table. The procedure accepts two input parameters in the form of booking id and booking date. The SQL statements for this procedure is shown below:
 
-USE littlelemondb;
-CREATE PROCEDURE `UpdateBooking`(IN booking_id INT, IN booking_date DATE)
-BEGIN
-	START TRANSACTION;
-        #check Bookings table to confirm if there is a booking with BookingID and BookingDate same as the booking_id,
-        #and booking_date parameters supplied by the user, then display the appropriate message and roll back the
-        #transaction, else update the Bookings table as appropriate and display the appropriate message
-        
-		IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingID = booking_id) = 1) AND
-				(SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingDate = booking_date) = 1) THEN
-			SELECT CONCAT("No changes made to Booking ", booking_id) AS "Confirmation";
-		ROLLBACK;
-		ELSE
-			UPDATE Bookings
-            SET BookingDate = booking_date
-            WHERE BookingID = booking_id;
-			SELECT CONCAT("Booking ", booking_id, " updated") AS "Confirmation";
-			COMMIT;
-	END IF;
-END
+    USE littlelemondb;
+    CREATE PROCEDURE `UpdateBooking`(IN booking_id INT, IN booking_date DATE)
+    BEGIN
+        START TRANSACTION;
+            #check Bookings table to confirm if there is a booking with BookingID and BookingDate same as the
+            #booking_id and booking_date parameters supplied by the user, then display the appropriate messag
+            #and roll back the transaction, else update the Bookings table as appropriate and display the
+            #appropriate message
+
+            IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingID = booking_id) = 1) AND
+               (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingDate = booking_date) = 1) THEN
+                SELECT CONCAT("No changes made to Booking ", booking_id) AS "Confirmation";
+                ROLLBACK;
+            ELSE
+                UPDATE Bookings
+                SET BookingDate = booking_date
+                WHERE BookingID = booking_id;
+                SELECT CONCAT("Booking ", booking_id, " updated") AS "Confirmation";
+                COMMIT;
+        END IF;
+    END
+
 #### Task 3: Create CancelBooking stored procedure
+
 This procedure helps Little Lemon to cancel or remove a booking from the Bookings table. The procedure accepts one input parameter in the form of booking id. The SQL statements for the procedure is as shown below:
 
-USE littlelemondb;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `CancelBooking`(IN booking_id INT)
-BEGIN
-	START TRANSACTION;
-        #check Bookings table to confirm if there is a booking with BookingID same as the booking_id
-        #parameter supplied by the user, then delete the booking from the Bookings table and display the appropriate
-        #message, else roll back the transaction
-        
-		IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingID = booking_id) = 1) THEN
-			DELETE FROM Bookings
-            WHERE BookingID = booking_id;
-			SELECT CONCAT("Booking", booking_id, " cancelled") AS "Confirmation";
-            COMMIT;
-		
-		ELSE
-			SELECT CONCAT("Booking", booking_id, " not found") AS "Confirmation";
-			ROLLBACK;
-	END IF;
-END
+    USE littlelemondb;
+    CREATE PROCEDURE `CancelBooking`(IN booking_id INT)
+    BEGIN
+        START TRANSACTION;
+            #check Bookings table to confirm if there is a booking with BookingID same as the booking_id
+            #parameter supplied by the user, then delete the booking from the Bookings table and display
+            #theappropriate message, else roll back the transaction
+
+            IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingID = booking_id) = 1) THEN
+                DELETE FROM Bookings
+                WHERE BookingID = booking_id;
+                SELECT CONCAT("Booking", booking_id, " cancelled") AS "Confirmation";
+                COMMIT;
+
+            ELSE
+                SELECT CONCAT("Booking", booking_id, " not found") AS "Confirmation";
+                ROLLBACK;
+        END IF;
+    END
+
 ### Week 3
 
 ### Data visualization
