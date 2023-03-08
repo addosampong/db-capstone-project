@@ -286,6 +286,8 @@ This procedure helps Little Lemon to cancel or remove a booking from the Booking
 
 ### Set up the Tableau Workspace for data analysis
 
+#### Task 1: Connect Little Lemon data in Execle to Tableau
+
 
 ```python
 
