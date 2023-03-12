@@ -4,13 +4,13 @@
 ## Author: Evans Addo-Sampong
 
 ### Project Description: Design a complete database for Little Lemon.
-Specifically, design the following:
+Specifically, the Project aims at designing the following:
 - A data model using an Entity Relationship Diagram with relevant relationships to meet the data requirements of Little Lemon using MySQL Workbench
 - Create the database schema and tables from the data model designed in point 1 above using MySQL Workbench
 - Write MySQL statements to create Views, Stored Procedures, Prepared Statements, etc. to create a menu booking system for Little Lemon, generate sales reports, and automate bookings (add bookings, cancel bookings, update bookings, etc.)
 
 ### Organization of the Project
-The Project is organized according to Tasks per the weekly schedule of the course. In view of that, the progression of the Project will be outlined in this **README** according to this weekly tasks schedule.
+The Project is organized according to Tasks per the weekly schedule of the course. In view of that, the progression of the Project will be outlined in this **README** according to these weekly tasks schedule.
 
 ### Week 1
 
@@ -210,7 +210,7 @@ This procedure adds a booking to the Bookings table. The procedure accepts four 
         START TRANSACTION;
             #check Bookings table to confirm if there is a booking with BookingID, CustomerID, BookingDate and
             #TableNo same as the booking_id, customer_id, booking_date and table_no parameters supplied by the 
-            #user, then display the appropriate message and roll back the transaction, else add the booking to
+            #user. Then display the appropriate message and roll back the transaction, else add the booking to
             #the Bookings table and display the appropriate message
 
             IF (SELECT exists (select 1 FROM Bookings WHERE BookingDate = booking_date) = 1) AND
@@ -218,6 +218,7 @@ This procedure adds a booking to the Bookings table. The procedure accepts four 
                 SELECT CONCAT("Table ", table_no, " is already booked - booking not added") AS "Confirmation";
                 ROLLBACK;
             ELSE
+                #arbirarily set the EmployeeID to 6 (Receptionist) for every new booking
                 SET @employee_id = 6;
                 INSERT INTO Bookings(TableNo, CustomerID, BookingDate, BookingSlot, EmployeeID)
                 VALUES
@@ -228,7 +229,7 @@ This procedure adds a booking to the Bookings table. The procedure accepts four 
 
     END
 
-**Assumptions made**: We assume that the if the booking will be added after checking the constraints, the current data and time that the booking is going to be added should be the BookingDate and BookingSlot, and these should be part of the data to be inserted into the Bookings table
+**Assumptions made**: We assume that the if the booking will be added after checking the constraints, the current date and time that the booking is going to be added should be the BookingDate and BookingSlot, and these should be part of the data to be inserted into the Bookings table. We also assume that for every new booking, the first employee to receive the order is the Receptionist who has an EmployeeID of 6. 
 
 #### Task 2: Create UpdateBooking stored procedure
 
@@ -239,7 +240,7 @@ The UpdateBooking procedure helps Little Lemon to update existing bookings in th
     BEGIN
         START TRANSACTION;
             #check Bookings table to confirm if there is a booking with BookingID and BookingDate same as the
-            #booking_id and booking_date parameters supplied by the user, then display the appropriate messag
+            #booking_id and booking_date parameters supplied by the user. Then display the appropriate message
             #and roll back the transaction, else update the Bookings table as appropriate and display the
             #appropriate message
 
@@ -265,8 +266,8 @@ This procedure helps Little Lemon to cancel or remove a booking from the Booking
     BEGIN
         START TRANSACTION;
             #check Bookings table to confirm if there is a booking with BookingID same as the booking_id
-            #parameter supplied by the user, then delete the booking from the Bookings table and display
-            #theappropriate message, else roll back the transaction
+            #parameter supplied by the user. Then delete the booking from the Bookings table and display
+            #the appropriate message, else roll back the transaction
 
             IF (SELECT exists (select 1 FROM littlelemondb.Bookings WHERE BookingID = booking_id) = 1) THEN
                 DELETE FROM Bookings
@@ -286,7 +287,74 @@ This procedure helps Little Lemon to cancel or remove a booking from the Booking
 
 ### Set up the Tableau Workspace for data analysis
 
-#### Task 1: Connect Little Lemon data in Execle to Tableau
+#### Task 1: Connect Little Lemon data to Tableau
+
+We loaded the Little Lemon data in Microsoft Excel format inot Tableau. During the data loading process, we filtered out data for all countries leaving only USA for onward analysis. This means that we will be doing the data analysis for only USA customers.
+
+#### Task 2: Create two new data fields
+
+After loading the Little Lemon data into Tableau, we then split the **Customer Name** column into two separate fields. We renamed the two new columns as **First Name** and **Last Name**
+
+#### Task 3: Create Profit column
+
+To get a **Profit** field in the dataset for analysis purposes, we created a **Calculated Field** in Tableau from the **Sales** column. We did this by selecting the **Sales** column and selecting the **Create --> Calculated Field...** option, then calcuted the profit as follows:
+
+    [Sales] - [Cost]
+
+This formula substracts the cost price of every order from the order's sale price to give the profit on that order.
+We then renamed the resulting column **Profit**.
+
+### Create interactive dashboard for sales and profits
+
+#### Task 1: Create a bar chart of sales
+
+To create the bar chart of sales greater than or equal to `$70` for each customer, we dropped the **Sales** column on **Rows** at the shelves section of Tableau and the **Customer Name** column on **Columns** at the shelves section. We then filtered **Sales** for sales greater than or equal to `$70` by dropping the **Sales** column on the **Filters** pane of Tableau, then applied a filter of **At least** 70 to get all sales greater than or equal to `$70`.
+
+We also applied a color scheme to the bar chart by dropping the **Sales** column to the **Color** section in the **Marks** pane of Tableau.
+
+We sorted the charts in descending order in order to give an aesthetic appearance of the bar chart.
+
+The **Tooltip** was applied automatically. This has the effect of a pop-up of the customer's name and total sales made by that customer when a user hovers the mouse over the bar chart.
+
+#### Task 2: Create a line chart of profits
+
+To create the line chart of profits trend from 2019 to 2022, we dropped the **Profit** column on **Rows** at the shelves section of Tableau and the **Order Date** column on **Columns** at the shelves section. We filtered out year 2023 from the **Order Date**.
+
+We also applied a color scheme to the line chart by dropping the **Profit** column to the **Color** section in the **Marks** pane of Tableau.
+
+The Tooltip was applied automatically. This has the effect of a pop-up of the year of order date and total profit made in that year when a user hovers the mouse over the line chart.
+
+#### Task 3: Create bubble chart
+
+To create the chart chart of customers and the sales made by them as well as the profits made from them, we dropped the **Sales** column on **Rows** at the shelves section of Tableau and the **Customer Name** column on **Columns** at the shelves section. In the **Marks** pane, we selected **Circle** in order to create the bubbles. In the **Show Me** section of Tableau at the upper right corner, we selected the **packed bubbles** option, then dropped the **Sales** column on the **Size** option in the **Marks** pane.
+
+To display the customers' names on the bubbles, we dropped the **Customer Name** column on the **Label** option in the **Marks** pane.
+
+We also applied a color scheme to the line chart by dropping the **Sales** column to the **Color** section in the **Marks** pane of Tableau.
+
+We also dropped the **Customer Name**, **Sales** and **Profit** columns on the **Tooltip** option in the **Marks** pane in order to apply those information as a tootip on the bubbles. This has the effect of a pop-up of the customer name, sales made by the customer and total profit made from that customer when a user hovers the mouse over the bubble chart.
+
+#### Task 4: Compare sales of 3 different cuisines
+
+To compare the sales and profits of the 3 different cuisines, we dropped the **Cuisine Name** and **Order Date** columns on **Columns** at the shelves section of Tableau and the **Sales** columns on **Rows** at the shelves section. We filtered out years 2019 and 2023 from the **Order Date**.
+
+We applied an appropriate color scheme to the line chart by dropping the **Sales** column to the **Color** section in the **Marks** pane of Tableau. We also sorted the bar charts in derscending order of profits.
+
+To display the profit on each cuisine, we dropped the **Profit** column on the **Label** option in the **Marks** pane.
+
+We also dropped the **Cuisine Name**, **Order Date**, **Sales** and **Profit** columns on the **Tooltip** option in the **Marks** pane in order to apply those information as a tootip on the charts whenever a user hovers the mouse over the charts.
+
+#### Task 5: Create an interactive dashboard
+
+To create the and interactive dashboard of the Customers Sales bar chart and the Sales bubble chart, we selected the **Dashboard** option, then dragged and dropped the **Customers Sales** and **Sales Bubble Chart** worksheets on the Dashboard.
+
+To create an interactive link between the two worksheets, we selected the **Use as filter** option on the **Customers Sales** worksheet. Thus, when a user selects a customer's bar chart on the **Customers Sales** worksheet, the customer's bubble is displayed in the **Sales Bubble Chart** worksheet below.
+
+When a user hovers the mouse over the customer's bubble in the **Sales Bubble Chart** worksheet in the Dashboard, the customer's name, sales made by them and the profit made from them appear as a tooltip.
+
+#### Tableau workbook
+
+The Tableau workbook for all the worksheets and dashboard is saved in the Project repo as **LittleLemon.twbx**
 
 
 ```python
