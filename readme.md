@@ -10,7 +10,7 @@ Specifically, the Project aims at designing the following:
 - Write MySQL statements to create Views, Stored Procedures, Prepared Statements, etc. to create a menu booking system for Little Lemon, generate sales reports, and automate bookings (add bookings, cancel bookings, update bookings, etc.)
 
 ### Organization of the Project
-The Project is organized according to Tasks per the weekly schedule of the course. In view of that, the progression of the Project will be outlined in the various supporting Jupyter Notebook files according to these weekly tasks schedule.
+The Project is organized according to Tasks per the weekly schedule of the course. In view of that, the progression of the Project will be outlined in the various supporting Jupyter Notebook files according to these weekly tasks schedules.
 
 - The documentation for the Little Lemon database creation, MySQL queries and the analysis and visualization of the Little Lemon data is contained in the notebook named **little_lemon_database_and_analysis.ipynb**.
 - The documentation for the creation of the database client is contained in the notebook named **configuring_mysql_connector.ipynb**
